@@ -1,7 +1,6 @@
 'use strict'
 
-const isEqual = require('lodash/isEqual')
-const unreachableSymbol = Symbol()
+const unreachableSymbol = Symbol('the code cant reach me')
 
 const GeneratorFunction = function * () {}.constructor
 

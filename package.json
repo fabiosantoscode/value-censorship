@@ -1,6 +1,6 @@
 {
   "name": "value-censorship",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "directories": {
@@ -8,8 +8,9 @@
   },
   "scripts": {
     "test": "istanbul cover ./node_modules/.bin/_mocha",
+    "lint": "eslint --fix '*.js'",
     "precommit": "npm run lint --silent && npm run test --silent",
-    "lint": "eslint --fix '*.js'"
+    "prepublish": "npm run precommit"
   },
   "repository": {
     "type": "git",
@@ -37,6 +38,10 @@
     "globals": {
       "describe": false,
       "it": false
+    },
+    "rules": {
+      "no-mixed-operators": 0,
+      "no-eval": 0
     }
   },
   "dependencies": {
