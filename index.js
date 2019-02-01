@@ -7,29 +7,33 @@ const censorFn = require('./censorfn')
 
 class NoCatch extends Error {}
 
-function wrap(node) {
-  return  {
-          type: "CallExpression",
-          callee: {
-            type: 'Identifier',
-            name: '__censorFn'
-          },
-          arguments: [node]
-        }
+function wrap (node) {
+  return {
+    type: 'CallExpression',
+    callee: {
+      type: 'Identifier',
+      name: '__censorFn'
+    },
+    arguments: [node]
+  }
 }
 
-module.exports = function censor (code) {
+function run (parsed) {
+  return (0, eval)('(__censorFn => {' + escodegen.generate(parsed) + '})')(censorFn)
+}
+
+function transform (code) {
   const parsed = acorn.parse(code, { allowReturnOutsideFunction: true })
-  estraverse.replace(parsed, {
+  return estraverse.replace(parsed, {
     leave (node) {
-      if (node.type === 'CallExpression') {
+      if (node.type === 'CallExpression' || node.type === 'NewExpression') {
         node.arguments = node.arguments.map(arg => {
           if (arg.type !== 'CallExpression') return wrap(arg)
           return arg
         })
         return {
           type: 'SequenceExpression',
-          expressions: [ wrap(node.callee), node ],
+          expressions: [ wrap(node.callee), node ]
         }
       }
       if (node.type === 'CatchClause') {
@@ -38,5 +42,11 @@ module.exports = function censor (code) {
       return node
     }
   })
-  return (0, eval)('(__censorFn => {' + escodegen.generate(parsed) + '})')(censorFn)
 }
+
+module.exports = function censor (code) {
+  const transformed = transform(code)
+  return run(transformed)
+}
+
+module.exports.CensorStop = censorFn.CensorStop

@@ -13,8 +13,20 @@ describe('value-censorship', () => {
     assert.throws(() => censor(identity + 'return x(Function)'))
     assert.throws(() => censor(identity + 'return x(require)'))
   })
-  it.only('disallows eval', () => {
+  it('cant use new function', () => {
+    assert.throws(() => censor('new Function("a", "return a")'))
+  })
+  it('disallows eval', () => {
     assert.throws(() => censor('eval("666")'))
+  })
+  it('disallows getting eval from global', () => {
+    assert.throws(() => censor('global["eva" + "l"]')('42'))
+  })
+  it('disallows getting Function from a function', () => {
+    assert.throws(() => censor('new (function(){}.constructor)("42")'))
+  })
+  it('disallows using the generator constructor', () => {
+    assert.throws(() => censor('new (function *(){}.constructor)("42")'))
   })
   it('disallows catch', () => {
     assert.throws(() => censor('try { } catch (e) {}'))
