@@ -18,8 +18,10 @@ function wrap (node) {
   }
 }
 
-function run (parsed) {
-  return (0, eval)('(__censorFn => {' + escodegen.generate(parsed) + '})')(censorFn)
+function run (parsed, sandbox) {
+  const sandboxNames = Object.keys(sandbox)
+  const sandboxValues = Object.keys(sandbox).map(k => sandbox[k])
+  return (0, eval)(`((__censorFn, ${sandboxNames}) => {${escodegen.generate(parsed)}})`)(censorFn, ...sandboxValues)
 }
 
 function transform (code) {
@@ -44,9 +46,10 @@ function transform (code) {
   })
 }
 
-module.exports = function censor (code) {
+module.exports = async function censor (code, sandbox = {}) {
   const transformed = transform(code)
-  return run(transformed)
+  const ret = await run(transformed, sandbox)
+  return censorFn(ret)
 }
 
 module.exports.CensorStop = censorFn.CensorStop
