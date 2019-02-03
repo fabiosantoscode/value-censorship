@@ -9,12 +9,11 @@ Since it censors practically every possibility of breaking out of the VM, it's a
 ```js
 const censor = require('value-censorship')
 
-// Then in an async function of your choice...
-await censor(`
+censor(`
   global["eva" + "l"]("42")  // Throws CensorStop error
   global["Functio" + "n"]("42")  // Throws CensorStop error
   new (function(){}.constructor)("42")  // Throws CensorStop error
 `)
 
-await censor(legitCode, { giveThisFunctionToTheCode: () => null })
+censor(legitCode, { giveThisFunctionToTheCode: () => null })
 ```

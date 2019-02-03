@@ -4,6 +4,7 @@ const estraverse = require('estraverse')
 const acorn = require('acorn')
 const escodegen = require('escodegen')
 const censorFn = require('./censorfn')
+const { VM: VM2 } = require('vm2')
 
 class NoCatch extends Error {}
 
@@ -18,10 +19,11 @@ function wrap (node) {
   }
 }
 
-function run (parsed, sandbox) {
-  const sandboxNames = Object.keys(sandbox)
-  const sandboxValues = Object.keys(sandbox).map(k => sandbox[k])
-  return (0, eval)(`((__censorFn, ${sandboxNames}) => {${escodegen.generate(parsed)}})`)(censorFn, ...sandboxValues)
+function run (transformed, sandbox) {
+  const code = '(() => {' + escodegen.generate(transformed) + '})()'
+  sandbox = Object.assign({ __censorFn: censorFn }, sandbox)
+  const vm = new VM2({ sandbox })
+  return vm.run(code)
 }
 
 function transform (code) {
@@ -46,9 +48,9 @@ function transform (code) {
   })
 }
 
-module.exports = async function censor (code, sandbox = {}) {
+module.exports = function censor (code, sandbox = {}) {
   const transformed = transform(code)
-  const ret = await run(transformed, sandbox)
+  const ret = run(transformed, sandbox)
   return censorFn(ret)
 }
 
